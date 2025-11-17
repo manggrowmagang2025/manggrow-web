@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
-import { supabase } from "@/integrations/supabase/client";
 import { ExternalLink, Search, Star, ShoppingBag } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 interface ProductRecommendation {
   id: string;
@@ -31,12 +31,7 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('product_recommendations')
-        .select('*')
-        .order('rating', { ascending: false });
-
-      if (error) throw error;
+      const data = await apiFetch<ProductRecommendation[]>("/products");
       setProducts(data || []);
     } catch (error) {
       console.error('Error fetching products:', error);

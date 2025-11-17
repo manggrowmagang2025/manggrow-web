@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
 import { 
@@ -20,105 +18,46 @@ import {
   UserPlus,
   ArrowLeft
 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login: React.FC = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const { user, isAuthenticated, login, register, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
+  const [welcomeShown, setWelcomeShown] = useState(false);
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
   // Signup form state
+  const [signupName, setSignupName] = useState('');
   const [signupEmail, setSignupEmail] = useState('');
   const [signupPassword, setSignupPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Auth state cleanup utility
-  const cleanupAuthState = () => {
-    Object.keys(localStorage).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        localStorage.removeItem(key);
-      }
-    });
-    Object.keys(sessionStorage || {}).forEach((key) => {
-      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
-        sessionStorage.removeItem(key);
-      }
-    });
-  };
-
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          toast({
-            title: "Welcome! 🌱",
-            description: "Berhasil masuk ke akun Anda",
-          });
-          // Redirect to main page and close this tab
-          setTimeout(() => {
-            window.opener?.location.reload();
-            window.close();
-          }, 1500);
-        }
-
-        if (event === 'SIGNED_OUT') {
-          toast({
-            title: "Goodbye! 👋",
-            description: "Berhasil keluar dari akun",
-          });
-        }
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    if (user && !welcomeShown) {
+      setWelcomeShown(true);
+      toast({
+        title: "Welcome! 🌱",
+        description: "Berhasil masuk ke akun Anda",
+      });
+      setTimeout(() => {
+        window.opener?.location.reload();
+        window.close();
+      }, 1500);
+    }
+  }, [user, welcomeShown]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      cleanupAuthState();
-      
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password: loginPassword,
-      });
-
-      if (error) {
-        let errorMessage = "Gagal masuk ke akun";
-        if (error.message.includes('Invalid login credentials')) {
-          errorMessage = "Email atau password salah";
-        } else if (error.message.includes('Email not confirmed')) {
-          errorMessage = "Silakan konfirmasi email Anda terlebih dahulu";
-        } else if (error.message.includes('Too many requests')) {
-          errorMessage = "Terlalu banyak percobaan. Coba lagi nanti";
-        }
-        throw new Error(errorMessage);
-      }
-
-      if (data.user) {
-        setLoginEmail('');
-        setLoginPassword('');
-      }
+      await login(loginEmail, loginPassword);
+      setLoginEmail('');
+      setLoginPassword('');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -154,42 +93,17 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      cleanupAuthState();
-
-      const { data, error } = await supabase.auth.signUp({
-        email: signupEmail,
-        password: signupPassword,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`
-        }
-      });
-
-      if (error) {
-        let errorMessage = "Gagal membuat akun";
-        if (error.message.includes('User already registered')) {
-          errorMessage = "Email sudah terdaftar. Silakan masuk atau gunakan email lain";
-        } else if (error.message.includes('Signup is disabled')) {
-          errorMessage = "Pendaftaran sementara ditutup. Coba lagi nanti";
-        } else if (error.message.includes('Password should be')) {
-          errorMessage = "Password terlalu lemah. Gunakan minimal 6 karakter";
-        }
-        throw new Error(errorMessage);
-      }
-
+      await register(signupName, signupEmail, signupPassword);
       toast({
         title: "Akun berhasil dibuat! 🎉",
-        description: data.user?.email_confirmed_at 
-          ? "Akun siap digunakan!" 
-          : "Silakan periksa email Anda untuk konfirmasi",
+        description: "Anda sudah otomatis masuk ke akun.",
       });
-
       setSignupEmail('');
       setSignupPassword('');
       setConfirmPassword('');
+      setSignupName('');
       
-      if (!data.user?.email_confirmed_at) {
-        setActiveTab('login');
-      }
+      setActiveTab('login');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -203,14 +117,11 @@ const Login: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      cleanupAuthState();
-      
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-
+      await logout();
+      toast({
+        title: "Goodbye! 👋",
+        description: "Berhasil keluar dari akun",
+      });
       window.opener?.location.reload();
       window.close();
     } catch (error: any) {
@@ -220,15 +131,16 @@ const Login: React.FC = () => {
         variant: "destructive",
       });
       
-      cleanupAuthState();
       setTimeout(() => {
         window.close();
       }, 1000);
     }
   };
 
-  const getUserInitials = (email: string) => {
-    return email.charAt(0).toUpperCase();
+  const getUserInitials = (name?: string, email?: string) => {
+    if (name) return name.charAt(0).toUpperCase();
+    if (email) return email.charAt(0).toUpperCase();
+    return '?';
   };
 
   const handleBackToMain = () => {
@@ -266,19 +178,18 @@ const Login: React.FC = () => {
 
         {/* Main Content */}
         <div className="max-w-md mx-auto">
-          {user ? (
+          {isAuthenticated && user ? (
             // Authenticated User View
             <Card>
               <CardContent className="pt-6">
                 <div className="space-y-6">
                   <div className="text-center">
                     <Avatar className="h-20 w-20 mx-auto mb-4">
-                      <AvatarImage src={user.user_metadata?.avatar_url} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                        {getUserInitials(user.email || '')}
+                        {getUserInitials(user.name, user.email)}
                       </AvatarFallback>
                     </Avatar>
-                    <h3 className="text-lg font-semibold">{user.user_metadata?.full_name || 'Member'}</h3>
+                    <h3 className="text-lg font-semibold">{user.name}</h3>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                   </div>
 
@@ -421,24 +332,34 @@ const Login: React.FC = () => {
                 </Card>
               </TabsContent>
 
-              <TabsContent value="signup">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <UserPlus className="h-5 w-5" />
+                <TabsContent value="signup">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center space-x-2">
+                        <UserPlus className="h-5 w-5" />
                       <span>Buat Akun Baru</span>
                     </CardTitle>
                     <CardDescription>
                       Bergabung dengan komunitas plant lovers!
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSignup} className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="signup-email">Email</Label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <CardContent>
+                      <form onSubmit={handleSignup} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-name">Nama Lengkap</Label>
                           <Input
+                            id="signup-name"
+                            placeholder="Nama Anda"
+                            value={signupName}
+                            onChange={(e) => setSignupName(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-email">Email</Label>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                            <Input
                             id="signup-email"
                             type="email"
                             placeholder="nama@email.com"

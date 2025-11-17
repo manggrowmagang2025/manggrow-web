@@ -4,8 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, User, Send, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Message {
   id: string;
@@ -15,6 +16,7 @@ interface Message {
 }
 
 const ChatInterface = () => {
+  const { isAuthenticated } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -40,6 +42,14 @@ const ChatInterface = () => {
 
   const sendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
+    if (!isAuthenticated) {
+      toast({
+        title: "Login diperlukan",
+        description: "Masuk terlebih dahulu untuk berkonsultasi dengan AI.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -54,30 +64,21 @@ const ChatInterface = () => {
 
     try {
       // Prepare conversation history (last 10 messages for context)
-      const conversationHistory = messages.slice(-10).map(msg => ({
+      const historySource = [...messages, userMessage];
+      const conversationHistory = historySource.slice(-10).map(msg => ({
         role: msg.role === 'assistant' ? 'model' : 'user',
         content: msg.content
       }));
 
-      const { data, error } = await supabase.functions.invoke('gemini-chat', {
-        body: {
-          message: userMessage.content,
-          conversationHistory
-        }
+      const response = await apiFetch<{ answer?: string }>("/ai/consult", {
+        method: "POST",
+        body: { question: userMessage.content, conversationHistory }
       });
-
-      if (error) {
-        throw new Error(error.message || 'Failed to get AI response');
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || 'AI service unavailable');
-      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response,
+        content: response?.answer || "Belum ada jawaban. Coba lagi nanti.",
         timestamp: new Date()
       };
 

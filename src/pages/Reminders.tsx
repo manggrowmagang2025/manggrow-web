@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   Calendar, 
   Droplets, 
@@ -15,9 +14,11 @@ import {
   AlertCircle,
   Plus
 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Plant {
-  id: string;
+  id: number;
   name: string;
   type: string;
   watering_frequency: number;
@@ -28,7 +29,7 @@ interface Plant {
 
 interface Reminder {
   id: string;
-  plant_id: string;
+  plant_id: number;
   care_type: 'watering' | 'fertilizing' | 'pruning' | 'repotting';
   scheduled_date: string;
   is_completed: boolean;
@@ -37,25 +38,27 @@ interface Reminder {
 }
 
 const Reminders = () => {
+  const { isAuthenticated } = useAuth();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (isAuthenticated) {
+      fetchData();
+    } else {
+      setPlants([]);
+      setReminders([]);
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const fetchData = async () => {
+    if (!isAuthenticated) return;
+    setLoading(true);
     try {
-      // Fetch plants
-      const { data: plantsData, error: plantsError } = await supabase
-        .from('plants')
-        .select('*');
-
-      if (plantsError) throw plantsError;
+      const plantsData = await apiFetch<Plant[]>("/plants");
       setPlants(plantsData || []);
-
-      // Generate reminders based on plant schedules
       await generateReminders(plantsData || []);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -139,12 +142,7 @@ const Reminders = () => {
         updateData.last_fertilized = new Date().toISOString().split('T')[0];
       }
 
-      const { error } = await supabase
-        .from('plants')
-        .update(updateData)
-        .eq('id', plant.id);
-
-      if (error) throw error;
+      await apiFetch(`/plants/${plant.id}`, { method: "PUT", body: updateData });
 
       await fetchData();
       
@@ -223,6 +221,24 @@ const Reminders = () => {
   const overdueReminders = getOverdueReminders();
   const todayReminders = getTodayReminders();
   const upcomingReminders = getUpcomingReminders();
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="py-16 text-center space-y-4">
+              <h2 className="text-2xl font-bold">Masuk untuk melihat pengingat 🌿</h2>
+              <p className="text-muted-foreground">
+                Pengingat perawatan hanya tersedia setelah Anda masuk ke akun Manggrow.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

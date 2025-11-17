@@ -8,22 +8,25 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import PlantCard from "@/components/PlantCard";
-import { supabase } from "@/integrations/supabase/client";
 import { Plus, Search } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Plant {
-  id: string;
+  id: number;
   name: string;
   type: string;
   watering_frequency: number;
   fertilizer_frequency: number;
   photo_url?: string;
   notes?: string;
-  last_watered?: string;
-  last_fertilized?: string;
+  last_watered?: string | null;
+  last_fertilized?: string | null;
+  user_id?: number;
 }
 
 const MyPlants = () => {
+  const { isAuthenticated } = useAuth();
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,17 +42,19 @@ const MyPlants = () => {
   });
 
   useEffect(() => {
-    fetchPlants();
-  }, []);
+    if (isAuthenticated) {
+      fetchPlants();
+    } else {
+      setPlants([]);
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const fetchPlants = async () => {
+    if (!isAuthenticated) return;
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('plants')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await apiFetch<Plant[]>("/plants");
       setPlants(data || []);
     } catch (error) {
       console.error('Error fetching plants:', error);
@@ -68,41 +73,33 @@ const MyPlants = () => {
     
     try {
       if (editingPlant) {
-        // Update existing plant
-        const { error } = await supabase
-          .from('plants')
-          .update({
+        await apiFetch(`/plants/${editingPlant.id}`, {
+          method: "PUT",
+          body: {
             name: formData.name,
             type: formData.type,
             watering_frequency: formData.watering_frequency,
             fertilizer_frequency: formData.fertilizer_frequency,
             photo_url: formData.photo_url || null,
             notes: formData.notes || null
-          })
-          .eq('id', editingPlant.id);
-
-        if (error) throw error;
-        
+          }
+        });
         toast({
           title: "Berhasil!",
           description: "Data tanaman berhasil diperbarui"
         });
       } else {
-        // Create new plant
-        const { error } = await supabase
-          .from('plants')
-          .insert([{
+        await apiFetch("/plants", {
+          method: "POST",
+          body: {
             name: formData.name,
             type: formData.type,
             watering_frequency: formData.watering_frequency,
             fertilizer_frequency: formData.fertilizer_frequency,
             photo_url: formData.photo_url || null,
-            notes: formData.notes || null,
-            user_id: (await supabase.auth.getUser()).data.user?.id
-          }]);
-
-        if (error) throw error;
-        
+            notes: formData.notes || null
+          }
+        });
         toast({
           title: "Berhasil!",
           description: "Tanaman baru berhasil ditambahkan"
@@ -147,16 +144,11 @@ const MyPlants = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus tanaman ini?")) return;
     
     try {
-      const { error } = await supabase
-        .from('plants')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
+      await apiFetch(`/plants/${id}`, { method: "DELETE" });
       
       await fetchPlants();
       toast({
@@ -173,14 +165,12 @@ const MyPlants = () => {
     }
   };
 
-  const handleWater = async (id: string) => {
+  const handleWater = async (id: number) => {
     try {
-      const { error } = await supabase
-        .from('plants')
-        .update({ last_watered: new Date().toISOString().split('T')[0] })
-        .eq('id', id);
-
-      if (error) throw error;
+      await apiFetch(`/plants/${id}`, {
+        method: "PUT",
+        body: { last_watered: new Date().toISOString().split('T')[0] }
+      });
       
       await fetchPlants();
       toast({
@@ -197,14 +187,12 @@ const MyPlants = () => {
     }
   };
 
-  const handleFertilize = async (id: string) => {
+  const handleFertilize = async (id: number) => {
     try {
-      const { error } = await supabase
-        .from('plants')
-        .update({ last_fertilized: new Date().toISOString().split('T')[0] })
-        .eq('id', id);
-
-      if (error) throw error;
+      await apiFetch(`/plants/${id}`, {
+        method: "PUT",
+        body: { last_fertilized: new Date().toISOString().split('T')[0] }
+      });
       
       await fetchPlants();
       toast({
@@ -225,6 +213,24 @@ const MyPlants = () => {
     plant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     plant.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="py-16 text-center space-y-4">
+              <h2 className="text-2xl font-bold">Masuk untuk mengelola tanaman Anda 🌱</h2>
+              <p className="text-muted-foreground">
+                Fitur ini memerlukan akun Manggrow. Silakan klik tombol Member pada navigasi untuk masuk.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

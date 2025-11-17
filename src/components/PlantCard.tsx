@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 interface Plant {
-  id: string;
+  id: number;
   name: string;
   type: string;
   watering_frequency: number;
@@ -33,9 +33,9 @@ interface Plant {
 interface PlantCardProps {
   plant: Plant;
   onEdit: (plant: Plant) => void;
-  onDelete: (id: string) => void;
-  onWater: (id: string) => void;
-  onFertilize: (id: string) => void;
+  onDelete: (id: number) => void;
+  onWater: (id: number) => void;
+  onFertilize: (id: number) => void;
 }
 
 const PlantCard = ({ plant, onEdit, onDelete, onWater, onFertilize }: PlantCardProps) => {
