@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { ExternalLink, Search, Star, ShoppingBag } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getAssetUrl } from "@/lib/api";
 
 interface ProductRecommendation {
   id: string;
@@ -44,7 +44,7 @@ const Products = () => {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = activeCategory === "Semua" || product.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
@@ -58,11 +58,11 @@ const Products = () => {
     for (let i = 0; i < fullStars; i++) {
       stars.push(<Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />);
     }
-    
+
     if (hasHalfStar) {
       stars.push(<Star key="half" className="h-4 w-4 fill-yellow-400/50 text-yellow-400" />);
     }
-    
+
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(<Star key={`empty-${i}`} className="h-4 w-4 text-gray-300" />);
@@ -92,7 +92,7 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
@@ -149,7 +149,16 @@ const Products = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredProducts.map((product) => (
-              <Card key={product.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <Card key={product.id} className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+                {product.image_url && (
+                  <div className="w-full h-48 overflow-hidden">
+                    <img
+                      src={getAssetUrl(product.image_url)}
+                      alt={product.product_name}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                )}
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <Badge variant="secondary" className="mb-2">
@@ -161,14 +170,14 @@ const Products = () => {
                     {product.product_name}
                   </CardTitle>
                 </CardHeader>
-                
+
                 <CardContent className="space-y-4">
                   {product.description && (
                     <p className="text-muted-foreground text-sm">
                       {product.description}
                     </p>
                   )}
-                  
+
                   {product.price_range && (
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Harga</span>
@@ -177,10 +186,10 @@ const Products = () => {
                       </span>
                     </div>
                   )}
-                  
+
                   {product.product_link && (
-                    <Button 
-                      variant="fun" 
+                    <Button
+                      variant="fun"
                       className="w-full hover-bounce"
                       onClick={() => window.open(product.product_link, '_blank')}
                     >

@@ -10,6 +10,7 @@ import Community from "./pages/Community";
 import Reminders from "./pages/Reminders";
 import Konsultasi from "./pages/Konsultasi";
 import Login from "./pages/Login";
+import AdminProducts from "./pages/AdminProducts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/reminders" element={<Reminders />} />
           <Route path="/konsultasi" element={<Konsultasi />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

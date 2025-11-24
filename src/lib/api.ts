@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:8080/api";
+const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:8000/api";
 const TOKEN_KEY = "manggrow_token";
 
 export const getStoredToken = () => {
@@ -15,7 +15,19 @@ export const setStoredToken = (token: string | null) => {
   }
 };
 
-type RequestOptions = RequestInit & { skipAuth?: boolean };
+export const getAssetUrl = (path: string) => {
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+
+  const baseUrl = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:8000";
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  return `${baseUrl}${cleanPath}`;
+};
+
+type RequestOptions = Omit<RequestInit, 'body'> & {
+  skipAuth?: boolean;
+  body?: any;
+};
 
 export async function apiFetch<T = any>(path: string, options: RequestOptions = {}): Promise<T> {
   const url = `${API_BASE}${path.startsWith("/") ? path : `/${path}`}`;

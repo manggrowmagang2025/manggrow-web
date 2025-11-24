@@ -2,21 +2,22 @@ import { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { 
-  Droplets, 
-  Leaf, 
-  MoreVertical, 
+import {
+  Droplets,
+  Leaf,
+  MoreVertical,
   Calendar,
   Edit,
   Trash2,
   Camera
 } from "lucide-react";
+import { getAssetUrl } from "@/lib/api";
 
 interface Plant {
   id: number;
@@ -84,7 +85,7 @@ const PlantCard = ({ plant, onEdit, onDelete, onWater, onFertilize }: PlantCardP
       <div className="relative">
         {plant.photo_url && !imageError ? (
           <img
-            src={plant.photo_url}
+            src={getAssetUrl(plant.photo_url)}
             alt={plant.name}
             className="w-full h-48 object-cover rounded-t-lg"
             onError={() => setImageError(true)}
@@ -94,7 +95,7 @@ const PlantCard = ({ plant, onEdit, onDelete, onWater, onFertilize }: PlantCardP
             <Camera className="h-12 w-12 text-muted-foreground" />
           </div>
         )}
-        
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -110,7 +111,7 @@ const PlantCard = ({ plant, onEdit, onDelete, onWater, onFertilize }: PlantCardP
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => onDelete(plant.id)}
               className="text-destructive focus:text-destructive"
             >

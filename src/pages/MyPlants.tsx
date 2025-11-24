@@ -9,7 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import PlantCard from "@/components/PlantCard";
 import { Plus, Search } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, getAssetUrl } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Plant {
@@ -32,6 +32,7 @@ const MyPlants = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPlant, setEditingPlant] = useState<Plant | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     type: "",
@@ -70,8 +71,34 @@ const MyPlants = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setLoading(true);
+
     try {
+      let finalPhotoUrl = formData.photo_url;
+
+      if (selectedFile) {
+        const uploadData = new FormData();
+        uploadData.append('photo', selectedFile);
+
+        try {
+          const uploadRes = await apiFetch<{ url: string }>("/plants/upload-photo", {
+            method: "POST",
+            body: uploadData,
+            // apiFetch handles Content-Type for FormData automatically
+          });
+          if (uploadRes && uploadRes.url) {
+            finalPhotoUrl = uploadRes.url;
+          }
+        } catch (uploadError) {
+          console.error('Upload failed:', uploadError);
+          toast({
+            title: "Warning",
+            description: "Gagal mengupload foto, data tanaman akan disimpan tanpa foto baru.",
+            variant: "destructive"
+          });
+        }
+      }
+
       if (editingPlant) {
         await apiFetch(`/plants/${editingPlant.id}`, {
           method: "PUT",
@@ -80,7 +107,7 @@ const MyPlants = () => {
             type: formData.type,
             watering_frequency: formData.watering_frequency,
             fertilizer_frequency: formData.fertilizer_frequency,
-            photo_url: formData.photo_url || null,
+            photo_url: finalPhotoUrl || null,
             notes: formData.notes || null
           }
         });
@@ -96,7 +123,7 @@ const MyPlants = () => {
             type: formData.type,
             watering_frequency: formData.watering_frequency,
             fertilizer_frequency: formData.fertilizer_frequency,
-            photo_url: formData.photo_url || null,
+            photo_url: finalPhotoUrl || null,
             notes: formData.notes || null
           }
         });
@@ -116,6 +143,8 @@ const MyPlants = () => {
         description: "Gagal menyimpan data tanaman",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -128,6 +157,7 @@ const MyPlants = () => {
       photo_url: "",
       notes: ""
     });
+    setSelectedFile(null);
     setEditingPlant(null);
   };
 
@@ -146,10 +176,10 @@ const MyPlants = () => {
 
   const handleDelete = async (id: number) => {
     if (!confirm("Apakah Anda yakin ingin menghapus tanaman ini?")) return;
-    
+
     try {
       await apiFetch(`/plants/${id}`, { method: "DELETE" });
-      
+
       await fetchPlants();
       toast({
         title: "Berhasil!",
@@ -171,7 +201,7 @@ const MyPlants = () => {
         method: "PUT",
         body: { last_watered: new Date().toISOString().split('T')[0] }
       });
-      
+
       await fetchPlants();
       toast({
         title: "Berhasil!",
@@ -193,7 +223,7 @@ const MyPlants = () => {
         method: "PUT",
         body: { last_fertilized: new Date().toISOString().split('T')[0] }
       });
-      
+
       await fetchPlants();
       toast({
         title: "Berhasil!",
@@ -248,7 +278,7 @@ const MyPlants = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
@@ -257,7 +287,7 @@ const MyPlants = () => {
               Kelola dan pantau semua tanaman cantik Anda 🌿✨
             </p>
           </div>
-          
+
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="playful" size="lg" onClick={() => { resetForm(); setIsDialogOpen(true); }} className="hover-bounce">
@@ -282,7 +312,7 @@ const MyPlants = () => {
                     required
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="type">Jenis Tanaman *</Label>
                   <Input
@@ -293,7 +323,7 @@ const MyPlants = () => {
                     required
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="watering">Siram Setiap (hari)</Label>
@@ -305,7 +335,7 @@ const MyPlants = () => {
                       onChange={(e) => setFormData({ ...formData, watering_frequency: parseInt(e.target.value) })}
                     />
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="fertilizing">Pupuk Setiap (hari)</Label>
                     <Input
@@ -317,17 +347,28 @@ const MyPlants = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div>
-                  <Label htmlFor="photo">URL Foto (opsional)</Label>
-                  <Input
-                    id="photo"
-                    value={formData.photo_url}
-                    onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
-                    placeholder="https://example.com/photo.jpg"
-                  />
+                  <Label htmlFor="photo">Foto Tanaman (opsional)</Label>
+                  <div className="space-y-2">
+                    <Input
+                      id="photo"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setSelectedFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    {formData.photo_url && !selectedFile && (
+                      <p className="text-xs text-muted-foreground">
+                        Foto saat ini: <a href={getAssetUrl(formData.photo_url)} target="_blank" rel="noreferrer" className="text-primary hover:underline">Lihat Foto</a>
+                      </p>
+                    )}
+                  </div>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="notes">Catatan (opsional)</Label>
                   <Textarea
@@ -338,15 +379,16 @@ const MyPlants = () => {
                     rows={3}
                   />
                 </div>
-                
+
                 <div className="flex gap-2">
-                  <Button type="submit" className="flex-1">
-                    {editingPlant ? "Update" : "Tambah"}
+                  <Button type="submit" className="flex-1" disabled={loading}>
+                    {loading ? "Menyimpan..." : (editingPlant ? "Update" : "Tambah")}
                   </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={() => setIsDialogOpen(false)}
+                    disabled={loading}
                   >
                     Batal
                   </Button>
@@ -380,7 +422,7 @@ const MyPlants = () => {
                     {searchTerm ? "🔍 Tanaman tidak ditemukan" : "🌱 Belum ada tanaman"}
                   </h3>
                   <p className="text-muted-foreground font-fun">
-                    {searchTerm 
+                    {searchTerm
                       ? "Coba ubah kata kunci pencarian Anda 🕵️‍♂️"
                       : "Tambahkan tanaman pertama Anda untuk memulai petualangan berkebun! 🌿✨"
                     }

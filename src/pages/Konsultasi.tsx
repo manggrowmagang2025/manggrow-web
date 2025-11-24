@@ -1,13 +1,39 @@
 import Navigation from "@/components/Navigation";
-import ChatInterface from "@/components/ChatInterface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MessageCircle, Bot, Leaf, Sparkles } from "lucide-react";
+import { useEffect } from "react";
+import "@n8n/chat/dist/style.css";
+import { createChat } from "@n8n/chat";
 
 const Konsultasi = () => {
+  useEffect(() => {
+    // Initialize n8n chat
+    createChat({
+      webhookUrl: 'https://ferri-study.app.n8n.cloud/webhook/581d9836-f44f-4dc1-bd5a-dfe95a51d948/chat',
+      target: '#n8n-chat',
+      mode: 'fullscreen',
+      showWelcomeScreen: true,
+      initialMessages: [
+        'Halo! Saya Manggrow Assistant 🌱',
+        'Saya siap membantu Anda dengan segala pertanyaan tentang perawatan tanaman. Apa yang ingin Anda tanyakan hari ini?'
+      ],
+      i18n: {
+        en: {
+          title: 'Manggrow Assistant',
+          subtitle: 'AI Asisten Berkebun',
+          footer: '',
+          getStarted: 'Mulai Chat',
+          inputPlaceholder: 'Tanyakan tentang tanaman Anda...',
+          closeButtonTooltip: 'Tutup Chat',
+        },
+      },
+    });
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-soft">
       <Navigation />
-      
+
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           {/* Header Section */}
@@ -68,7 +94,7 @@ const Konsultasi = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Chat Area */}
             <div className="lg:col-span-2">
-              <ChatInterface />
+              <div id="n8n-chat" className="h-[600px] rounded-xl overflow-hidden border border-border/50 shadow-lg bg-card"></div>
             </div>
 
             {/* Sidebar with Tips */}
@@ -150,7 +176,7 @@ const Konsultasi = () => {
                   </ul>
                 </CardContent>
               </Card>
-              
+
               <Card className="border-border/30 bg-card/50">
                 <CardContent className="p-6">
                   <h3 className="font-game font-bold mb-3 text-accent flex items-center">

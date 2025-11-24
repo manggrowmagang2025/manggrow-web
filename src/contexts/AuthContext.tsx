@@ -13,7 +13,7 @@ interface AuthContextValue {
   token: string | null;
   isAuthenticated: boolean;
   initializing: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<AuthUser>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       body: { email, password }
     });
     persistSession(data.token, data.user);
+    return data.user;
   };
 
   const register = async (name: string, email: string, password: string) => {

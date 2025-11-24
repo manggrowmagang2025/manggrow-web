@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,21 +8,25 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/hooks/use-toast';
-import { 
-  LogIn, 
-  LogOut, 
-  User as UserIcon, 
-  Mail, 
-  Lock, 
+import {
+  LogIn,
+  LogOut,
+  User as UserIcon,
+  Mail,
+  Lock,
   Leaf,
   Settings,
   UserPlus,
-  ArrowLeft
+  ArrowLeft,
+  Shield
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 const Login: React.FC = () => {
   const { user, isAuthenticated, login, register, logout } = useAuth();
+  const navigate = useNavigate();
+  const [isInitiallyAuthenticated] = useState(isAuthenticated);
+  console.log('Login render:', { user, isAuthenticated });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [welcomeShown, setWelcomeShown] = useState(false);
@@ -37,27 +42,35 @@ const Login: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
+    // Don't auto-redirect if user was already logged in when visiting the page
+    if (isInitiallyAuthenticated) return;
+
     if (user && !welcomeShown) {
       setWelcomeShown(true);
       toast({
         title: "Welcome! 🌱",
         description: "Berhasil masuk ke akun Anda",
       });
+
       setTimeout(() => {
-        window.opener?.location.reload();
-        window.close();
+        if (user.role === 'admin') {
+          navigate('/admin/products');
+        } else {
+          navigate('/');
+        }
       }, 1500);
     }
-  }, [user, welcomeShown]);
+  }, [user, welcomeShown, navigate, isInitiallyAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await login(loginEmail, loginPassword);
+      const user = await login(loginEmail, loginPassword);
       setLoginEmail('');
       setLoginPassword('');
+      // Navigation handled by useEffect
     } catch (error: any) {
       toast({
         title: "Error",
@@ -71,7 +84,7 @@ const Login: React.FC = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (signupPassword !== confirmPassword) {
       toast({
         title: "Error",
@@ -102,7 +115,7 @@ const Login: React.FC = () => {
       setSignupPassword('');
       setConfirmPassword('');
       setSignupName('');
-      
+
       setActiveTab('login');
     } catch (error: any) {
       toast({
@@ -122,33 +135,24 @@ const Login: React.FC = () => {
         title: "Goodbye! 👋",
         description: "Berhasil keluar dari akun",
       });
-      window.opener?.location.reload();
-      window.close();
+      navigate('/');
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Gagal keluar dari akun",
         variant: "destructive",
       });
-      
-      setTimeout(() => {
-        window.close();
-      }, 1000);
     }
   };
 
   const getUserInitials = (name?: string, email?: string) => {
-    if (name) return name.charAt(0).toUpperCase();
-    if (email) return email.charAt(0).toUpperCase();
+    if (name && name.length > 0) return name.charAt(0).toUpperCase();
+    if (email && email.length > 0) return email.charAt(0).toUpperCase();
     return '?';
   };
 
   const handleBackToMain = () => {
-    if (window.opener) {
-      window.close();
-    } else {
-      window.location.href = '/';
-    }
+    navigate('/');
   };
 
   return (
@@ -195,70 +199,86 @@ const Login: React.FC = () => {
 
                   <Separator />
 
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                      <div className="bg-primary/10 p-2 rounded-lg">
-                        <Leaf className="h-4 w-4 text-primary" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Status Member</p>
-                        <p className="text-xs text-muted-foreground">Aktif - Plant Lover 🌱</p>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <Card className="p-3">
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-primary">0</p>
-                          <p className="text-xs text-muted-foreground">Tanaman</p>
+                  {user.role === 'admin' ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                        <div className="bg-primary/10 p-2 rounded-lg">
+                          <Shield className="h-4 w-4 text-primary" />
                         </div>
-                      </Card>
-                      <Card className="p-3">
-                        <div className="text-center">
-                          <p className="text-2xl font-bold text-accent">0</p>
-                          <p className="text-xs text-muted-foreground">Reminder</p>
+                        <div>
+                          <p className="text-sm font-medium">Status Akun</p>
+                          <p className="text-xs text-muted-foreground">Administrator 🛠️</p>
                         </div>
-                      </Card>
+                      </div>
+
+                      <Button
+                        variant="default"
+                        className="w-full justify-start"
+                        onClick={() => navigate('/admin/products')}
+                      >
+                        <Settings className="h-4 w-4 mr-3" />
+                        Dashboard Admin
+                      </Button>
                     </div>
-                  </div>
+                  ) : (
+                    <>
+                      <div className="space-y-4">
+                        <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                          <div className="bg-primary/10 p-2 rounded-lg">
+                            <Leaf className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">Status Member</p>
+                            <p className="text-xs text-muted-foreground">Aktif - Plant Lover 🌱</p>
+                          </div>
+                        </div>
 
-                  <Separator />
+                        <div className="grid grid-cols-2 gap-3">
+                          <Card className="p-3">
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-primary">0</p>
+                              <p className="text-xs text-muted-foreground">Tanaman</p>
+                            </div>
+                          </Card>
+                          <Card className="p-3">
+                            <div className="text-center">
+                              <p className="text-2xl font-bold text-accent">0</p>
+                              <p className="text-xs text-muted-foreground">Reminder</p>
+                            </div>
+                          </Card>
+                        </div>
+                      </div>
 
-                  <div className="space-y-3">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        window.opener && (window.opener.location.href = '/my-plants');
-                        window.close();
-                      }}
-                    >
-                      <Leaf className="h-4 w-4 mr-3" />
-                      Tanaman Saya
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        window.opener && (window.opener.location.href = '/reminders');
-                        window.close();
-                      }}
-                    >
-                      <Settings className="h-4 w-4 mr-3" />
-                      Pengingat
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        window.opener && (window.opener.location.href = '/products');
-                        window.close();
-                      }}
-                    >
-                      <UserIcon className="h-4 w-4 mr-3" />
-                      Rekomendasi
-                    </Button>
-                  </div>
+                      <Separator />
+
+                      <div className="space-y-3">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => navigate('/my-plants')}
+                        >
+                          <Leaf className="h-4 w-4 mr-3" />
+                          Tanaman Saya
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => navigate('/reminders')}
+                        >
+                          <Settings className="h-4 w-4 mr-3" />
+                          Pengingat
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start"
+                          onClick={() => navigate('/products')}
+                        >
+                          <UserIcon className="h-4 w-4 mr-3" />
+                          Rekomendasi
+                        </Button>
+                      </div>
+                    </>
+                  )}
 
                   <Separator />
 
@@ -332,34 +352,34 @@ const Login: React.FC = () => {
                 </Card>
               </TabsContent>
 
-                <TabsContent value="signup">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center space-x-2">
-                        <UserPlus className="h-5 w-5" />
+              <TabsContent value="signup">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <UserPlus className="h-5 w-5" />
                       <span>Buat Akun Baru</span>
                     </CardTitle>
                     <CardDescription>
                       Bergabung dengan komunitas plant lovers!
                     </CardDescription>
                   </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleSignup} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="signup-name">Nama Lengkap</Label>
+                  <CardContent>
+                    <form onSubmit={handleSignup} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-name">Nama Lengkap</Label>
+                        <Input
+                          id="signup-name"
+                          placeholder="Nama Anda"
+                          value={signupName}
+                          onChange={(e) => setSignupName(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-email">Email</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                           <Input
-                            id="signup-name"
-                            placeholder="Nama Anda"
-                            value={signupName}
-                            onChange={(e) => setSignupName(e.target.value)}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="signup-email">Email</Label>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input
                             id="signup-email"
                             type="email"
                             placeholder="nama@email.com"
