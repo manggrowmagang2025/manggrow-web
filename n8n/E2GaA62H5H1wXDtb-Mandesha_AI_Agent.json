@@ -1,0 +1,261 @@
+{
+  "name": "Mandesha AI Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "f8aa80c9-d6a0-4416-9548-3c6ca68ed656",
+      "name": "When chat message received",
+      "webhookId": "581d9836-f44f-4dc1-bd5a-dfe95a51d948"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Nama agent: Manggrow Pupuk Cair Organik AI\n\nKamu adalah AI Product Specialist untuk brand Manggrow, dengan fokus utama pada produk Pupuk Organik Cair Durian (Manggrow POC Durian). Tugasmu adalah menjawab pertanyaan, memberi edukasi, dan membantu calon pembeli maupun pengguna lama memahami manfaat, kandungan, serta cara pakai produk Manggrow dengan jelas dan meyakinkan.\n\nGunakan selalu bahasa Indonesia yang sopan, ramah, dan mudah dipahami. Gaya bicara seperti CS online shop yang informatif: tidak kaku, tapi tetap profesional. Prioritaskan penjelasan yang praktis dan aplikatif untuk pemilik pohon durian, petani, dan hobiis tanaman.\n\nAturan utama:\n\n1. Selalu gunakan informasi dari knowledge base yang diberikan (produk Manggrow, terutama POC Durian) sebagai sumber utama jawabanmu. Jika ada beberapa informasi mirip, dahulukan data dari dokumen resmi product knowledge Manggrow.\n2. Saat menjawab:\n\n   * Jelaskan manfaat utama produk terhadap tanaman dan hasil panen.\n   * Berikan dosis dan cara pakai yang jelas dan terstruktur (misalnya poin 1, 2, 3) jika relevan.\n   * Sertakan tips tambahan yang masih sesuai dengan isi knowledge base, misalnya waktu pemakaian terbaik atau penggabungan dengan produk Manggrow lain bila memang tertulis.\n3. Jika pengguna menanyakan hal di luar cakupan produk Manggrow (misalnya pupuk merek lain, analisis tanah detail, atau topik tidak relevan):\n\n   * Jawab singkat secara umum jika masih berkaitan dengan perawatan tanaman.\n   * Lalu arahkan kembali ke solusi menggunakan produk Manggrow tanpa mengarang hal yang tidak ada di dokumen.\n4. Jangan mengada-ada komposisi, manfaat, klaim berlebihan, atau janji hasil panen yang tidak disebutkan di knowledge base.\n5. Jangan memberikan saran medis atau kesehatan manusia. Fokus hanya pada tanaman, tanah, dan praktik budidaya.\n6. Jika kamu benar-benar tidak menemukan jawaban di knowledge base, katakan terus terang bahwa kamu tidak menemukan informasinya dan sarankan pengguna untuk konsultasi langsung ke tim Manggrow atau penyuluh pertanian setempat.\n7. Gunakan nada yang membantu closing penjualan secara halus, misalnya dengan menutup jawaban memakai ajakan seperti “Silakan dicoba rutin ya, supaya pohon duriannya lebih cepat berbunga dan berbuah lebat.”\n\nSetiap kali menjawab, anggap pengguna belum terlalu paham dunia pertanian, jadi jelaskan pelan-pelan, hindari istilah teknis yang rumit, dan prioritaskan contoh konkret serta langkah praktis.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        64,
+        0
+      ],
+      "id": "faa46f01-faa6-4443-9ed2-ddacfd5ec327",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        208
+      ],
+      "id": "b46aefb6-d02e-4e9f-9fb2-795539d26ed8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "N0D774AUuldRV0Dr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        112,
+        208
+      ],
+      "id": "e7c840a1-b4c6-4aa9-b09b-6c27ca40f4ed",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Fokus pada dokumen tentang mandesha manggrow."
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        480,
+        176
+      ],
+      "id": "46354877-8433-4ad3-901f-eb04d8663135",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "chatbot-mandesha",
+          "mode": "list",
+          "cachedResultName": "chatbot-mandesha"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        384
+      ],
+      "id": "76b5a716-4677-43fc-9673-49d0b2bc6d46",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "hdATDq3nFI2HUyMM",
+          "name": "PineconeApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        720,
+        400
+      ],
+      "id": "6f0186e1-12c1-41f3-b207-626a0487724a",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "N0D774AUuldRV0Dr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        400,
+        544
+      ],
+      "id": "cc9af3d1-d882-4f26-8cdf-33cec009cdc5",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "N0D774AUuldRV0Dr",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Gemini LLM",
+        "height": 400,
+        "width": 544
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "ebbab972-9169-41b3-b2ee-b6712a06ec13",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Pinecone Vectore DB",
+        "height": 560,
+        "width": 512,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        320,
+        128
+      ],
+      "typeVersion": 1,
+      "id": "d3f6e29b-daae-4469-92b2-1a0d5f43bc37",
+      "name": "Sticky Note1"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

@@ -202,3 +202,42 @@ All colors MUST be HSL.
     50% { transform: translateY(-10px); }
   }
 }
+
+/* n8n Chat Customization to match Manggrow Theme */
+#n8n-chat {
+  /* Core Colors */
+  --chat--color-primary: hsl(150, 25%, 35%); /* Manggrow Primary */
+  --chat--color-secondary: hsl(120, 25%, 75%); /* Manggrow Accent */
+  --chat--color-dark: hsl(0, 0%, 13%); /* Foreground */
+  --chat--color-light: hsl(0, 0%, 98%); /* Background */
+
+  /* Header */
+  --chat--header--background: hsl(150, 25%, 35%);
+  --chat--header--color: #ffffff;
+
+  /* Messages */
+  --chat--message--user--background: hsl(150, 25%, 35%);
+  --chat--message--user--color: #ffffff;
+  
+  --chat--message--bot--background: hsl(120, 15%, 88%); /* Soft Accent */
+  --chat--message--bot--color: hsl(0, 0%, 13%);
+
+  /* Input Area */
+  --chat--input--background: #ffffff;
+  --chat--input--color: hsl(0, 0%, 13%);
+  --chat--input--placeholder-color: hsl(0, 0%, 45%);
+  --chat--input--send-color: hsl(150, 25%, 35%);
+
+  /* Layout & Typography */
+  --chat--window--width: 100%;
+  --chat--window--height: 100%;
+  --chat--window--radius: 0.75rem;
+  --chat--typography--font-family: 'Fredoka', 'Baloo 2', sans-serif;
+  --chat--spacing: 1rem;
+}
+
+/* Ensure full height for the container in fullscreen mode override */
+#n8n-chat .chat-layout {
+  height: 100% !important;
+  border-radius: 0.75rem;
+}

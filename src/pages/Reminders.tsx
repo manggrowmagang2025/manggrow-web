@@ -234,23 +234,7 @@ const Reminders = () => {
   const todayReminders = getTodayReminders();
   const upcomingReminders = getUpcomingReminders();
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <Card>
-            <CardContent className="py-16 text-center space-y-4">
-              <h2 className="text-2xl font-bold">Masuk untuk melihat pengingat 🌿</h2>
-              <p className="text-muted-foreground">
-                Pengingat perawatan hanya tersedia setelah Anda masuk ke akun Manggrow.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+
 
   if (loading) {
     return (

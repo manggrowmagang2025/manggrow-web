@@ -1,6 +1,8 @@
 # Manggrow Web Platform 🚀
 
 <div align="center">
+  <img src="./public/logo.png" alt="Manggrow Logo" width="150" />
+  <br />
   <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=2E9EF7&center=true&vCenter=true&width=520&lines=Manggrow+Web+Platform;Internship+Management+System;AI+RAG+Chatbot+Integration;Powered+by+n8n+%26+Supabase" alt="Typing SVG" />
 </div>
 
@@ -27,36 +29,65 @@ Designed for **Admins** and **Interns**, it transforms manual tracking processes
 ## 📸 Screenshots
 
 <div align="center">
-  <!-- Add your screenshots here -->
-  <!-- <img src="screenshots/chatbot.png" width="45%" /> -->
-  <!-- <img src="screenshots/dashboard.png" width="45%" /> -->
-  <p><i>(Screenshots coming soon)</i></p>
+  <img src="./screenshoots/1.png" width="800" alt="Dashboard" />
+  <br/><br/>
+  
+  <p float="left">
+    <img src="./screenshoots/2.png" width="30%" />
+    <img src="./screenshoots/3.png" width="30%" />
+    <img src="./screenshoots/4.png" width="30%" /> 
+  </p>
+  <p float="left">
+    <img src="./screenshoots/5.png" width="30%" />
+    <img src="./screenshoots/6.png" width="30%" />
+    <img src="./screenshoots/7.png" width="30%" /> 
+  </p>
+    <p float="left">
+    <img src="./screenshoots/8.png" width="45%" />
+    <img src="./screenshoots/9.png" width="45%" />
+  </p>
 </div>
 
 ---
 
 ## 💡 Key Features
 
-<div align="center">
+**Manggrow Web Platform** provides a complete ecosystem for plant lovers and administrators:
 
-| Feature | Description |
-| :--- | :--- |
-| 🤖 **AI RAG Chatbot** | Intelligent assistant powered by **n8n** to answer user queries using project documents. |
-| 📱 **Responsive Design** | Optimized experience across **Desktop**, **Tablet**, and **Mobile** devices. |
-| 🎨 **Modern UI** | Built with **Shadcn UI** & **Tailwind CSS** for a premium, consistent look and feel. |
-| ⚡ **Fast Performance** | Powered by **Vite** for instant server starts and lightning-fast HMR. |
-| 🔄 **Real-time Data** | Ready for **Supabase** integration to handle live data synchronization. |
+### 🌱 For Gardeners (Members)
+*   **Smart Garden Helper (Chat AI)**: Consultasi 24/7 dengan AI Assistant yang pintar untuk menanyakan masalah tanaman, tips perawatan, dan rekomendasi pupuk.
+*   **My Plants Dashboard**: Catat dan kelola koleksi tanaman Anda. Tambahkan foto, jenis tanaman, dan catatan perkembangan.
+*   **Automated Reminders**: Lupa menyiram? Sistem reminder otomatis akan mengingatkan jadwal penyiraman dan pemupukan tanaman spesifik Anda.
+*   **Community & Education**: Akses database komunitas pecinta tanaman dan video tutorial terkurasi untuk meningkatkan skill berkebun.
+*   **Curated Products**: Dapatkan rekomendasi produk perawatan tanaman terbaik yang sesuai dengan kebutuhan kebun Anda.
 
-</div>
+### 🛡️ For Administrators
+*   **Analytics Dashboard**: Pantau pertumbuhan pengguna, tren tanaman populer, dan performa konten melalui grafik visual (Pie, Bar, Line Charts).
+*   **Content Management**: Kelola link komunitas dan video tutorial secara dinamis tanpa menyentuh kode.
+*   **Product Management**: Tambah, edit, dan hapus rekomendasi produk untuk pengguna.
+
+---
+
+## 🧠 n8n Workflow Architecture
+
+The core intelligence of Manggrow is powered by two specialized **n8n workflows** working in tandem. You can find the source JSON files in the `/n8n` directory of this repository:
+
+### 1. **Knowledge Base Powerhouse** 📚
+*   **File**: `n8n/SeV1IQCIV4H9D8QB-Mandesha_Knowledge.json`
+*   **Function**: This workflow acts as the **Data Ingestion Engine**. It processes raw text documents (PDFs, docs, etc.) containing agricultural knowledge.
+*   **Process**: It splits documents into manageable chunks, generates vector embeddings, and stores them in the **Supabase Vector Store**. This allows the AI to "read" and "remember" vast amounts of plant care information.
+
+### 2. **AI Agent Brain** 🤖
+*   **File**: `n8n/E2GaA62H5H1wXDtb-Mandesha_AI_Agent.json`
+*   **Function**: This is the customer-facing **Conversational Agent**.
+*   **Capabilities**:
+    *   **Contextual RAG**: Retrieves relevant context from the vector store created by the Knowledge workflow.
+    *   **Natural Language Processing**: Understands user queries about specific plant symptoms (e.g., "Why are my Monstera leaves turning yellow?").
+    *   **Response Generation**:Synthesizes expert advice based on the retrieved knowledge, ensuring accurate and helpful answers.
 
 ---
 
 ## 🛠️ Tech Stack
-
-### 🧠 AI & Automation
-*   **Workflow Automation**: **n8n**
-*   **Architecture**: **RAG (Retrieval-Augmented Generation)**
-*   **Integration**: Seamless webhook based communication
 
 ### 💻 Frontend (Core)
 *   **Framework**: **React** (v18)

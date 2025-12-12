@@ -23,11 +23,11 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 const Login: React.FC = () => {
-  const { user, isAdmin, signIn, signUp, signOut } = useAuth();
+  const { user, isAdmin, signIn, signUp, signOut, loading: authLoading } = useAuth();
   const isAuthenticated = !!user;
   const navigate = useNavigate();
   const [isInitiallyAuthenticated] = useState(isAuthenticated);
-  console.log('Login render:', { user, isAuthenticated });
+  console.log('Login render:', { user, isAuthenticated, isAdmin, authLoading });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const [welcomeShown, setWelcomeShown] = useState(false);
@@ -46,7 +46,8 @@ const Login: React.FC = () => {
     // Don't auto-redirect if user was already logged in when visiting the page
     if (isInitiallyAuthenticated) return;
 
-    if (user && !welcomeShown) {
+    // Wait for auth to finish loading (role check) before deciding where to go
+    if (user && !authLoading && !welcomeShown) {
       setWelcomeShown(true);
       toast({
         title: "Welcome! 🌱",
@@ -55,13 +56,13 @@ const Login: React.FC = () => {
 
       setTimeout(() => {
         if (isAdmin) {
-          navigate('/admin/products');
+          navigate('/admin/dashboard');
         } else {
           navigate('/');
         }
       }, 1500);
     }
-  }, [user, welcomeShown, navigate, isInitiallyAuthenticated]);
+  }, [user, authLoading, isAdmin, welcomeShown, navigate, isInitiallyAuthenticated]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

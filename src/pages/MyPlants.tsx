@@ -254,23 +254,7 @@ const MyPlants = () => {
     plant.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navigation />
-        <div className="container mx-auto px-4 py-8">
-          <Card>
-            <CardContent className="py-16 text-center space-y-4">
-              <h2 className="text-2xl font-bold">Masuk untuk mengelola tanaman Anda 🌱</h2>
-              <p className="text-muted-foreground">
-                Fitur ini memerlukan akun Manggrow. Silakan klik tombol Member pada navigasi untuk masuk.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
+
 
   if (loading) {
     return (

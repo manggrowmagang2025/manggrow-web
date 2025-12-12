@@ -21,7 +21,9 @@ const Navigation = () => {
     { path: "/reminders", label: "Pengingat", icon: Calendar, public: false },
     { path: "/products", label: "Rekomendasi", icon: ShoppingBag, public: false },
     { path: "/community", label: "Komunitas", icon: Users, public: false },
-    { path: "/admin/products", label: "Admin Dashboard", icon: Settings, adminOnly: true },
+    { path: "/admin/dashboard", label: "Admin Dashboard", icon: Settings, adminOnly: true },
+    { path: "/admin/products", label: "Admin Produk", icon: ShoppingBag, adminOnly: true },
+    { path: "/admin/community", label: "Admin Komunitas", icon: Users, adminOnly: true },
   ];
 
   const menuItems = allMenuItems.filter(item => {

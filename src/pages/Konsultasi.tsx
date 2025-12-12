@@ -9,7 +9,7 @@ const Konsultasi = () => {
   useEffect(() => {
     // Initialize n8n chat
     createChat({
-      webhookUrl: 'https://ferri-study.app.n8n.cloud/webhook/581d9836-f44f-4dc1-bd5a-dfe95a51d948/chat',
+      webhookUrl: 'https://bejec23498.app.n8n.cloud/webhook/581d9836-f44f-4dc1-bd5a-dfe95a51d948/chat',
       target: '#n8n-chat',
       mode: 'fullscreen',
       showWelcomeScreen: true,
