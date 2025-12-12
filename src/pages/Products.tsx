@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navigation from "@/components/Navigation";
 import { ExternalLink, Search, Star, ShoppingBag } from "lucide-react";
-import { apiFetch, getAssetUrl } from "@/lib/api";
+import { supabase } from "@/lib/supabaseClient";
 
 interface ProductRecommendation {
   id: string;
@@ -31,13 +31,25 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const data = await apiFetch<ProductRecommendation[]>("/products");
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('rating', { ascending: false });
+
+      if (error) throw error;
       setProducts(data || []);
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getProductImageUrl = (path?: string) => {
+    if (!path) return "";
+    if (path.startsWith("http")) return path;
+    const { data } = supabase.storage.from('products').getPublicUrl(path.replace('/uploads/products/', ''));
+    return data.publicUrl;
   };
 
   const categories = ["Semua", ...Array.from(new Set(products.map(p => p.category)))];
@@ -153,7 +165,7 @@ const Products = () => {
                 {product.image_url && (
                   <div className="w-full h-48 overflow-hidden">
                     <img
-                      src={getAssetUrl(product.image_url)}
+                      src={getProductImageUrl(product.image_url)}
                       alt={product.product_name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     />

@@ -1,73 +1,133 @@
-# Welcome to your Lovable project
+# Manggrow Web Platform 🚀
 
-## Project info
+<div align="center">
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=2E9EF7&center=true&vCenter=true&width=520&lines=Manggrow+Web+Platform;Internship+Management+System;AI+RAG+Chatbot+Integration;Powered+by+n8n+%26+Supabase" alt="Typing SVG" />
+</div>
 
-**URL**: https://lovable.dev/projects/c92f02e4-c47c-4998-8d6e-447416f9cd0c
+<div align="center">
 
-## How can I edit this code?
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![n8n](https://img.shields.io/badge/n8n-FF6584?style=for-the-badge&logo=n8n&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
-There are several ways of editing your application.
+</div>
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c92f02e4-c47c-4998-8d6e-447416f9cd0c) and start prompting.
+## 🚀 About The Project
 
-Changes made via Lovable will be committed automatically to this repo.
+**Manggrow Web Platform** is a comprehensive web application designed to facilitate efficient management and operations for the Manggrow internship project. It features a responsive user interface, real-time data integration, and a seamless user experience.
 
-**Use your preferred IDE**
+A standout feature is the **INTELLIGENT AI ASSISTANT**, powered by **n8n** and a **RAG (Retrieval-Augmented Generation)** system. This chatbot allows users to query project documentation and internship guidelines instantly, receiving accurate, context-aware answers.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Designed for **Admins** and **Interns**, it transforms manual tracking processes into a digital, organized, and collaborative workflow.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📸 Screenshots
 
-Follow these steps:
+<div align="center">
+  <!-- Add your screenshots here -->
+  <!-- <img src="screenshots/chatbot.png" width="45%" /> -->
+  <!-- <img src="screenshots/dashboard.png" width="45%" /> -->
+  <p><i>(Screenshots coming soon)</i></p>
+</div>
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 💡 Key Features
 
-# Step 3: Install the necessary dependencies.
-npm i
+<div align="center">
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+| Feature | Description |
+| :--- | :--- |
+| 🤖 **AI RAG Chatbot** | Intelligent assistant powered by **n8n** to answer user queries using project documents. |
+| 📱 **Responsive Design** | Optimized experience across **Desktop**, **Tablet**, and **Mobile** devices. |
+| 🎨 **Modern UI** | Built with **Shadcn UI** & **Tailwind CSS** for a premium, consistent look and feel. |
+| ⚡ **Fast Performance** | Powered by **Vite** for instant server starts and lightning-fast HMR. |
+| 🔄 **Real-time Data** | Ready for **Supabase** integration to handle live data synchronization. |
+
+</div>
+
+---
+
+## 🛠️ Tech Stack
+
+### 🧠 AI & Automation
+*   **Workflow Automation**: **n8n**
+*   **Architecture**: **RAG (Retrieval-Augmented Generation)**
+*   **Integration**: Seamless webhook based communication
+
+### 💻 Frontend (Core)
+*   **Framework**: **React** (v18)
+*   **Language**: **TypeScript**
+*   **Build Tool**: **Vite**
+
+### 🔌 State & Backend
+*   **State Management**: **TanStack Query**
+*   **Backend (Optional)**: **Supabase** (Auth, Database, Storage)
+
+---
+
+## ⚙️ Installation & Setup
+
+### Prerequisites
+*   Node.js 18+
+*   npm or bun
+
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/your-org/manggrow-web.git
+cd manggrow-web
 ```
 
-**Edit a file directly in GitHub**
+### 2️⃣ Install Dependencies
+```bash
+npm install
+# or
+bun install
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 3️⃣ Configure Environment
+Copy the example environment file and update the values.
+```bash
+cp .env.example .env
+```
 
-**Use GitHub Codespaces**
+### 4️⃣ Run Development Server
+```bash
+npm run dev
+# 💻 App runs at http://localhost:8080 or port shown in terminal
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## 📂 Project Structure
 
-This project is built with:
+A clean, clear structure for scalable development.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```text
+manggrow-web/
+├── .github/                # GitHub templates & workflows
+├── public/                 # Static assets
+├── src/
+│   ├── assets/             # Component-scoped assets
+│   ├── components/         # Reusable UI components
+│   ├── contexts/           # React Context providers
+│   ├── hooks/              # Custom React hooks
+│   ├── lib/                # Utilities & helpers
+│   ├── pages/              # Route pages
+│   ├── App.tsx             # Main App component
+│   └── main.tsx            # Entry point
+├── .editorconfig           # Editor configuration
+├── .env.example            # Environment variables example
+└── package.json            # Dependencies & scripts
+```
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/c92f02e4-c47c-4998-8d6e-447416f9cd0c) and click on Share -> Publish.
+<div align="center">
 
-## Can I connect a custom domain to my Lovable project?
+⚡ *Empowering Internship Management with AI-Driven Technology.*
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+</div>

@@ -5,16 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
-import { 
-  Calendar, 
-  Droplets, 
-  Leaf, 
-  Clock, 
+import {
+  Calendar,
+  Droplets,
+  Leaf,
+  Clock,
   CheckCircle2,
   AlertCircle,
   Plus
 } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Plant {
@@ -38,7 +38,8 @@ interface Reminder {
 }
 
 const Reminders = () => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,10 +55,16 @@ const Reminders = () => {
   }, [isAuthenticated]);
 
   const fetchData = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user) return;
     setLoading(true);
     try {
-      const plantsData = await apiFetch<Plant[]>("/plants");
+      const { data: plantsData, error } = await supabase
+        .from('plants')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
       setPlants(plantsData || []);
       await generateReminders(plantsData || []);
     } catch (error) {
@@ -81,7 +88,7 @@ const Reminders = () => {
       if (plant.last_watered) {
         const lastWatered = new Date(plant.last_watered);
         const nextWatering = new Date(lastWatered.getTime() + plant.watering_frequency * 24 * 60 * 60 * 1000);
-        
+
         if (nextWatering <= today) {
           generatedReminders.push({
             plant_id: plant.id,
@@ -106,7 +113,7 @@ const Reminders = () => {
       if (plant.last_fertilized) {
         const lastFertilized = new Date(plant.last_fertilized);
         const nextFertilizing = new Date(lastFertilized.getTime() + plant.fertilizer_frequency * 24 * 60 * 60 * 1000);
-        
+
         if (nextFertilizing <= today) {
           generatedReminders.push({
             plant_id: plant.id,
@@ -135,17 +142,22 @@ const Reminders = () => {
   const markAsCompleted = async (plant: Plant, careType: 'watering' | 'fertilizing') => {
     try {
       const updateData: any = {};
-      
+
       if (careType === 'watering') {
         updateData.last_watered = new Date().toISOString().split('T')[0];
       } else if (careType === 'fertilizing') {
         updateData.last_fertilized = new Date().toISOString().split('T')[0];
       }
 
-      await apiFetch(`/plants/${plant.id}`, { method: "PUT", body: updateData });
+      const { error } = await supabase
+        .from('plants')
+        .update(updateData)
+        .eq('id', plant.id);
+
+      if (error) throw error;
 
       await fetchData();
-      
+
       toast({
         title: "Berhasil!",
         description: `${careType === 'watering' ? 'Penyiraman' : 'Pemupukan'} telah dicatat`
@@ -203,7 +215,7 @@ const Reminders = () => {
 
   const getTodayReminders = () => {
     const today = new Date().toISOString().split('T')[0];
-    return reminders.filter(reminder => 
+    return reminders.filter(reminder =>
       reminder.scheduled_date === today && !reminder.is_completed
     );
   };
@@ -211,7 +223,7 @@ const Reminders = () => {
   const getUpcomingReminders = () => {
     const today = new Date();
     const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    
+
     return reminders.filter(reminder => {
       const scheduledDate = new Date(reminder.scheduled_date);
       return scheduledDate > today && scheduledDate <= nextWeek && !reminder.is_completed;
@@ -256,7 +268,7 @@ const Reminders = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -352,7 +364,7 @@ const Reminders = () => {
                             </p>
                           </div>
                         </div>
-                        <Button 
+                        <Button
                           variant="success"
                           size="sm"
                           className="hover-bounce"
@@ -397,7 +409,7 @@ const Reminders = () => {
                             </p>
                           </div>
                         </div>
-                        <Button 
+                        <Button
                           variant="success"
                           size="sm"
                           className="hover-bounce"

@@ -23,7 +23,8 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 
 const Login: React.FC = () => {
-  const { user, isAuthenticated, login, register, logout } = useAuth();
+  const { user, isAdmin, signIn, signUp, signOut } = useAuth();
+  const isAuthenticated = !!user;
   const navigate = useNavigate();
   const [isInitiallyAuthenticated] = useState(isAuthenticated);
   console.log('Login render:', { user, isAuthenticated });
@@ -53,7 +54,7 @@ const Login: React.FC = () => {
       });
 
       setTimeout(() => {
-        if (user.role === 'admin') {
+        if (isAdmin) {
           navigate('/admin/products');
         } else {
           navigate('/');
@@ -67,7 +68,8 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const user = await login(loginEmail, loginPassword);
+      const { error } = await signIn(loginEmail.trim(), loginPassword);
+      if (error) throw error;
       setLoginEmail('');
       setLoginPassword('');
       // Navigation handled by useEffect
@@ -106,17 +108,32 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      await register(signupName, signupEmail, signupPassword);
-      toast({
-        title: "Akun berhasil dibuat! 🎉",
-        description: "Anda sudah otomatis masuk ke akun.",
+      console.log('Attempting signup with:', {
+        email: signupEmail.trim(),
+        name: signupName.trim(),
+        passwordLength: signupPassword.length
       });
+      const { data, error } = await signUp(signupEmail.trim(), signupPassword, signupName.trim());
+      if (error) throw error;
+
       setSignupEmail('');
       setSignupPassword('');
       setConfirmPassword('');
       setSignupName('');
 
-      setActiveTab('login');
+      if (data?.session) {
+        toast({
+          title: "Selamat Datang! 🌱",
+          description: "Akun berhasil dibuat dan Anda telah masuk.",
+        });
+      } else {
+        toast({
+          title: "Akun berhasil dibuat! 🎉",
+          description: "Silakan cek email untuk verifikasi sebelum login.",
+        });
+        setActiveTab('login');
+      }
+      // Auto login might not work if email confirmation is required, so better to redirect to login
     } catch (error: any) {
       toast({
         title: "Error",
@@ -130,7 +147,7 @@ const Login: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       toast({
         title: "Goodbye! 👋",
         description: "Berhasil keluar dari akun",
@@ -183,116 +200,125 @@ const Login: React.FC = () => {
         {/* Main Content */}
         <div className="max-w-md mx-auto">
           {isAuthenticated && user ? (
-            // Authenticated User View
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <Avatar className="h-20 w-20 mx-auto mb-4">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                        {getUserInitials(user.name, user.email)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-lg font-semibold">{user.name}</h3>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                  </div>
-
-                  <Separator />
-
-                  {user.role === 'admin' ? (
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-                        <div className="bg-primary/10 p-2 rounded-lg">
-                          <Shield className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">Status Akun</p>
-                          <p className="text-xs text-muted-foreground">Administrator 🛠️</p>
-                        </div>
-                      </div>
-
-                      <Button
-                        variant="default"
-                        className="w-full justify-start"
-                        onClick={() => navigate('/admin/products')}
-                      >
-                        <Settings className="h-4 w-4 mr-3" />
-                        Dashboard Admin
-                      </Button>
+            !isInitiallyAuthenticated ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                  <p className="text-muted-foreground">Mengalihkan...</p>
+                </CardContent>
+              </Card>
+            ) : (
+              // Authenticated User View
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <Avatar className="h-20 w-20 mx-auto mb-4">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                          {getUserInitials(user.user_metadata?.name, user.email)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <h3 className="text-lg font-semibold">{user.user_metadata?.name || 'User'}</h3>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
                     </div>
-                  ) : (
-                    <>
+
+                    <Separator />
+
+                    {isAdmin ? (
                       <div className="space-y-4">
                         <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
                           <div className="bg-primary/10 p-2 rounded-lg">
-                            <Leaf className="h-4 w-4 text-primary" />
+                            <Shield className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium">Status Member</p>
-                            <p className="text-xs text-muted-foreground">Aktif - Plant Lover 🌱</p>
+                            <p className="text-sm font-medium">Status Akun</p>
+                            <p className="text-xs text-muted-foreground">Administrator 🛠️</p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3">
-                          <Card className="p-3">
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-primary">0</p>
-                              <p className="text-xs text-muted-foreground">Tanaman</p>
-                            </div>
-                          </Card>
-                          <Card className="p-3">
-                            <div className="text-center">
-                              <p className="text-2xl font-bold text-accent">0</p>
-                              <p className="text-xs text-muted-foreground">Reminder</p>
-                            </div>
-                          </Card>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div className="space-y-3">
                         <Button
-                          variant="ghost"
+                          variant="default"
                           className="w-full justify-start"
-                          onClick={() => navigate('/my-plants')}
-                        >
-                          <Leaf className="h-4 w-4 mr-3" />
-                          Tanaman Saya
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => navigate('/reminders')}
+                          onClick={() => navigate('/admin/products')}
                         >
                           <Settings className="h-4 w-4 mr-3" />
-                          Pengingat
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start"
-                          onClick={() => navigate('/products')}
-                        >
-                          <UserIcon className="h-4 w-4 mr-3" />
-                          Rekomendasi
+                          Dashboard Admin
                         </Button>
                       </div>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <div className="space-y-4">
+                          <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+                            <div className="bg-primary/10 p-2 rounded-lg">
+                              <Leaf className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">Status Member</p>
+                              <p className="text-xs text-muted-foreground">Aktif - Plant Lover 🌱</p>
+                            </div>
+                          </div>
 
-                  <Separator />
+                          <div className="grid grid-cols-2 gap-3">
+                            <Card className="p-3">
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-primary">0</p>
+                                <p className="text-xs text-muted-foreground">Tanaman</p>
+                              </div>
+                            </Card>
+                            <Card className="p-3">
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-accent">0</p>
+                                <p className="text-xs text-muted-foreground">Reminder</p>
+                              </div>
+                            </Card>
+                          </div>
+                        </div>
 
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Keluar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                        <Separator />
+
+                        <div className="space-y-3">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/my-plants')}
+                          >
+                            <Leaf className="h-4 w-4 mr-3" />
+                            Tanaman Saya
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/reminders')}
+                          >
+                            <Settings className="h-4 w-4 mr-3" />
+                            Pengingat
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start"
+                            onClick={() => navigate('/products')}
+                          >
+                            <UserIcon className="h-4 w-4 mr-3" />
+                            Rekomendasi
+                          </Button>
+                        </div>
+                      </>
+                    )}
+
+                    <Separator />
+
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Keluar
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
           ) : (
             // Authentication Forms
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

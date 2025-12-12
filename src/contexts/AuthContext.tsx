@@ -1,116 +1,85 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { apiFetch, getStoredToken, setStoredToken } from "@/lib/api";
+import { createContext, useContext, useEffect, useState } from "react";
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabaseClient";
 
-export interface AuthUser {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
+interface AuthContextType {
+  user: User | null;
+  session: Session | null;
+  loading: boolean;
+  isAdmin: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signOut: () => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<{ data: { session: Session | null } | null, error: any }>;
 }
 
-interface AuthContextValue {
-  user: AuthUser | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  initializing: boolean;
-  login: (email: string, password: string) => Promise<AuthUser>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
-}
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  session: null,
+  loading: true,
+  isAdmin: false,
+  signIn: async () => ({ error: null }),
+  signOut: async () => { },
+  signUp: async () => ({ data: null, error: null }),
+});
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const readStoredUser = () => {
-    if (typeof window === "undefined") return null;
-    const stored = window.localStorage.getItem("manggrow_user");
-    try {
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
-  };
-
-  const [user, setUser] = useState<AuthUser | null>(() => readStoredUser());
-  const [token, setToken] = useState<string | null>(() => getStoredToken());
-  const [initializing, setInitializing] = useState(true);
-
-  const persistSession = (nextToken: string | null, nextUser: AuthUser | null) => {
-    setToken(nextToken);
-    setStoredToken(nextToken);
-    if (typeof window !== "undefined") {
-      if (nextUser) {
-        setUser(nextUser);
-        window.localStorage.setItem("manggrow_user", JSON.stringify(nextUser));
-      } else {
-        setUser(null);
-        window.localStorage.removeItem("manggrow_user");
-      }
-    } else {
-      setUser(nextUser);
-    }
-  };
-
-  const login = async (email: string, password: string) => {
-    const data = await apiFetch<{ token: string; user: AuthUser }>("/auth/login", {
-      method: "POST",
-      body: { email, password }
-    });
-    persistSession(data.token, data.user);
-    return data.user;
-  };
-
-  const register = async (name: string, email: string, password: string) => {
-    const data = await apiFetch<{ token: string; user: AuthUser }>("/auth/register", {
-      method: "POST",
-      body: { name, email, password }
-    });
-    persistSession(data.token, data.user);
-  };
-
-  const logout = async () => {
-    try {
-      await apiFetch("/auth/logout", { method: "POST" });
-    } catch {
-      // ignore logout errors
-    }
-    persistSession(null, null);
-  };
-
-  const refreshProfile = async () => {
-    if (!token) return;
-    const data = await apiFetch<{ user: AuthUser }>("/auth/me");
-    persistSession(token, data.user);
-  };
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    if (!token) {
-      setInitializing(false);
-      return;
-    }
-    refreshProfile()
-      .catch(() => persistSession(null, null))
-      .finally(() => setInitializing(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) checkRole(session.user.id);
+      else setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) checkRole(session.user.id);
+      else {
+        setIsAdmin(false);
+        setLoading(false);
+      };
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const value = useMemo<AuthContextValue>(() => ({
-    user,
-    token,
-    isAuthenticated: Boolean(user && token),
-    initializing,
-    login,
-    register,
-    logout,
-    refreshProfile
-  }), [user, token, initializing]);
+  const checkRole = async (uid: string) => {
+    // Supabase has delayed persistence, so we fetch profile manually
+    const { data } = await supabase.from('profiles').select('role').eq('id', uid).single();
+    setIsAdmin(data?.role === 'admin');
+    setLoading(false);
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  const signIn = async (email: string, password: string) => {
+    return await supabase.auth.signInWithPassword({ email, password });
+  };
 
-export const useAuthContext = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuthContext must be used within AuthProvider");
-  return ctx;
-};
+  const signUp = async (email: string, password: string, name: string) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name }
+      }
+    });
+    return { data, error };
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, session, loading, isAdmin, signIn, signOut, signUp }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}

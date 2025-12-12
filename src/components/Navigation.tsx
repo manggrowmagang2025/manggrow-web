@@ -11,7 +11,8 @@ const Navigation = () => {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { user, isAdmin } = useAuth();
+  const isAuthenticated = !!user;
 
   const allMenuItems = [
     { path: "/", label: "Beranda", icon: Home, public: true },
@@ -24,7 +25,7 @@ const Navigation = () => {
   ];
 
   const menuItems = allMenuItems.filter(item => {
-    if (user?.role === 'admin') {
+    if (isAdmin) {
       return item.adminOnly;
     }
     if (item.adminOnly) return false;
@@ -53,8 +54,8 @@ const Navigation = () => {
                   key={item.path}
                   to={item.path}
                   className={`flex items-center space-x-2 px-4 py-2.5 rounded-2xl transition-all duration-300 font-fun font-medium hover-bounce ${isActive(item.path)
-                      ? "bg-gradient-primary text-primary-foreground shadow-fun border-2 border-primary-glow scale-105"
-                      : "text-muted-foreground hover:text-primary hover:bg-primary-soft border-2 border-transparent hover:border-primary/30"
+                    ? "bg-gradient-primary text-primary-foreground shadow-fun border-2 border-primary-glow scale-105"
+                    : "text-muted-foreground hover:text-primary hover:bg-primary-soft border-2 border-transparent hover:border-primary/30"
                     }`}
                 >
                   <span className="text-sm">{item.label}</span>
@@ -70,11 +71,11 @@ const Navigation = () => {
               className="ml-2 border-2 border-primary/30 hover:border-primary"
             >
               {isAuthenticated ? (
-                user?.role === 'admin' ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />
+                isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />
               ) : (
                 <LogIn className="h-4 w-4 mr-2" />
               )}
-              {isAuthenticated ? (user?.role === 'admin' ? "Admin" : "Member") : "Login"}
+              {isAuthenticated ? (isAdmin ? "Admin" : "Member") : "Login"}
             </Button>
           </div>
 
@@ -100,8 +101,8 @@ const Navigation = () => {
                       to={item.path}
                       onClick={() => setOpen(false)}
                       className={`flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-300 font-fun font-medium ${isActive(item.path)
-                          ? "bg-gradient-primary text-primary-foreground shadow-fun"
-                          : "text-muted-foreground hover:text-primary hover:bg-primary-soft"
+                        ? "bg-gradient-primary text-primary-foreground shadow-fun"
+                        : "text-muted-foreground hover:text-primary hover:bg-primary-soft"
                         }`}
                     >
                       <span>{item.label}</span>
@@ -120,11 +121,11 @@ const Navigation = () => {
                   className="w-full mt-4 border-2 border-primary/30"
                 >
                   {isAuthenticated ? (
-                    user?.role === 'admin' ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />
+                    isAdmin ? <Shield className="h-4 w-4 mr-2" /> : <User className="h-4 w-4 mr-2" />
                   ) : (
                     <LogIn className="h-4 w-4 mr-2" />
                   )}
-                  {isAuthenticated ? (user?.role === 'admin' ? "Admin Area" : "Member Area") : "Login"}
+                  {isAuthenticated ? (isAdmin ? "Admin Area" : "Member Area") : "Login"}
                 </Button>
               </div>
             </SheetContent>

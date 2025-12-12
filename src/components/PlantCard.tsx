@@ -17,7 +17,7 @@ import {
   Trash2,
   Camera
 } from "lucide-react";
-import { getAssetUrl } from "@/lib/api";
+import { supabase } from "@/lib/supabaseClient";
 
 interface Plant {
   id: number;
@@ -80,12 +80,18 @@ const PlantCard = ({ plant, onEdit, onDelete, onWater, onFertilize }: PlantCardP
   const wateringStatus = getWateringStatus();
   const fertilizerStatus = getFertilizerStatus();
 
+  const getPublicUrl = (path: string) => {
+    if (!path) return '';
+    const { data } = supabase.storage.from('plants').getPublicUrl(path);
+    return data.publicUrl;
+  };
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-card border-border/50">
       <div className="relative">
         {plant.photo_url && !imageError ? (
           <img
-            src={getAssetUrl(plant.photo_url)}
+            src={getPublicUrl(plant.photo_url)}
             alt={plant.name}
             className="w-full h-48 object-cover rounded-t-lg"
             onError={() => setImageError(true)}

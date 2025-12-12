@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { apiFetch, getAssetUrl } from "@/lib/api";
+import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,8 @@ interface Product {
 }
 
 const AdminProducts = () => {
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAdmin } = useAuth();
+    const isAuthenticated = !!user;
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -40,14 +41,15 @@ const AdminProducts = () => {
     });
 
     useEffect(() => {
-        if (isAuthenticated && user?.role === 'admin') {
+        if (isAuthenticated && isAdmin) {
             fetchProducts();
         }
-    }, [isAuthenticated, user]);
+    }, [isAuthenticated, isAdmin]);
 
     const fetchProducts = async () => {
         try {
-            const data = await apiFetch<Product[]>("/products");
+            const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
             setProducts(data || []);
         } catch (error) {
             console.error('Error fetching products:', error);
@@ -88,17 +90,18 @@ const AdminProducts = () => {
             let finalImageUrl = formData.image_url;
 
             if (selectedFile) {
-                const uploadData = new FormData();
-                uploadData.append('image', selectedFile);
+                const fileExt = selectedFile.name.split('.').pop();
+                const fileName = `${Math.random()}.${fileExt}`;
+                const filePath = `products/${fileName}`;
 
-                const uploadRes = await apiFetch<{ url: string }>("/products/upload-image", {
-                    method: "POST",
-                    body: uploadData,
-                });
+                const { error: uploadError } = await supabase.storage
+                    .from('products')
+                    .upload(filePath, selectedFile);
 
-                if (uploadRes && uploadRes.url) {
-                    finalImageUrl = uploadRes.url;
-                }
+                if (uploadError) throw uploadError;
+
+                const { data: { publicUrl } } = supabase.storage.from('products').getPublicUrl(filePath);
+                finalImageUrl = publicUrl;
             }
 
             const payload = {
@@ -107,16 +110,17 @@ const AdminProducts = () => {
             };
 
             if (editingProduct) {
-                await apiFetch(`/products/${editingProduct.id}`, {
-                    method: "PUT",
-                    body: payload
-                });
+                const { error } = await supabase
+                    .from('products')
+                    .update(payload)
+                    .eq('id', editingProduct.id);
+                if (error) throw error;
                 toast({ title: "Berhasil", description: "Produk berhasil diperbarui" });
             } else {
-                await apiFetch("/products", {
-                    method: "POST",
-                    body: payload
-                });
+                const { error } = await supabase
+                    .from('products')
+                    .insert([payload]);
+                if (error) throw error;
                 toast({ title: "Berhasil", description: "Produk berhasil ditambahkan" });
             }
 
@@ -124,6 +128,7 @@ const AdminProducts = () => {
             resetForm();
             fetchProducts();
         } catch (error: any) {
+            console.error('Error saving product:', error);
             toast({
                 title: "Error",
                 description: error.message || "Gagal menyimpan produk",
@@ -138,10 +143,12 @@ const AdminProducts = () => {
         if (!confirm("Apakah Anda yakin ingin menghapus produk ini?")) return;
 
         try {
-            await apiFetch(`/products/${id}`, { method: "DELETE" });
+            const { error } = await supabase.from('products').delete().eq('id', id);
+            if (error) throw error;
             toast({ title: "Berhasil", description: "Produk berhasil dihapus" });
             fetchProducts();
         } catch (error) {
+            console.error('Error deleting product:', error);
             toast({
                 title: "Error",
                 description: "Gagal menghapus produk",
@@ -163,7 +170,7 @@ const AdminProducts = () => {
         setIsDialogOpen(true);
     };
 
-    if (!isAuthenticated || user?.role !== 'admin') {
+    if (!isAuthenticated || !isAdmin) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="text-center">
@@ -246,7 +253,7 @@ const AdminProducts = () => {
                                     <div className="flex items-center gap-4">
                                         {formData.image_url && !selectedFile && (
                                             <img
-                                                src={getAssetUrl(formData.image_url)}
+                                                src={formData.image_url}
                                                 alt="Preview"
                                                 className="h-16 w-16 object-cover rounded-md border"
                                             />
@@ -284,7 +291,7 @@ const AdminProducts = () => {
                                 <div className="relative h-48 overflow-hidden rounded-t-lg bg-muted">
                                     {product.image_url ? (
                                         <img
-                                            src={getAssetUrl(product.image_url)}
+                                            src={product.image_url}
                                             alt={product.product_name}
                                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
                                         />

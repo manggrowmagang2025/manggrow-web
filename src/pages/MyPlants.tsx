@@ -9,8 +9,8 @@ import { toast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
 import PlantCard from "@/components/PlantCard";
 import { Plus, Search } from "lucide-react";
-import { apiFetch, getAssetUrl } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Plant {
   id: number;
@@ -26,7 +26,8 @@ interface Plant {
 }
 
 const MyPlants = () => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [plants, setPlants] = useState<Plant[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,10 +53,16 @@ const MyPlants = () => {
   }, [isAuthenticated]);
 
   const fetchPlants = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user) return;
     setLoading(true);
     try {
-      const data = await apiFetch<Plant[]>("/plants");
+      const { data, error } = await supabase
+        .from('plants')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
       setPlants(data || []);
     } catch (error) {
       console.error('Error fetching plants:', error);
@@ -71,66 +78,60 @@ const MyPlants = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
     setLoading(true);
 
     try {
       let finalPhotoUrl = formData.photo_url;
 
       if (selectedFile) {
-        const uploadData = new FormData();
-        uploadData.append('photo', selectedFile);
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
 
-        try {
-          const uploadRes = await apiFetch<{ url: string }>("/plants/upload-photo", {
-            method: "POST",
-            body: uploadData,
-            // apiFetch handles Content-Type for FormData automatically
-          });
-          if (uploadRes && uploadRes.url) {
-            finalPhotoUrl = uploadRes.url;
-          }
-        } catch (uploadError) {
+        const { error: uploadError } = await supabase.storage
+          .from('plants')
+          .upload(filePath, selectedFile);
+
+        if (uploadError) {
           console.error('Upload failed:', uploadError);
           toast({
             title: "Warning",
-            description: "Gagal mengupload foto, data tanaman akan disimpan tanpa foto baru.",
+            description: "Gagal mengupload foto via Supabase.",
             variant: "destructive"
           });
+        } else {
+          // Construct public URL or store path
+          finalPhotoUrl = filePath;
         }
       }
 
+      const payload = {
+        name: formData.name,
+        type: formData.type,
+        watering_frequency: formData.watering_frequency,
+        fertilizer_frequency: formData.fertilizer_frequency,
+        photo_url: finalPhotoUrl || null,
+        notes: formData.notes || null,
+        user_id: user.id
+      };
+
       if (editingPlant) {
-        await apiFetch(`/plants/${editingPlant.id}`, {
-          method: "PUT",
-          body: {
-            name: formData.name,
-            type: formData.type,
-            watering_frequency: formData.watering_frequency,
-            fertilizer_frequency: formData.fertilizer_frequency,
-            photo_url: finalPhotoUrl || null,
-            notes: formData.notes || null
-          }
-        });
-        toast({
-          title: "Berhasil!",
-          description: "Data tanaman berhasil diperbarui"
-        });
+        const { error } = await supabase
+          .from('plants')
+          .update(payload)
+          .eq('id', editingPlant.id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+        toast({ title: "Berhasil!", description: "Data tanaman berhasil diperbarui" });
       } else {
-        await apiFetch("/plants", {
-          method: "POST",
-          body: {
-            name: formData.name,
-            type: formData.type,
-            watering_frequency: formData.watering_frequency,
-            fertilizer_frequency: formData.fertilizer_frequency,
-            photo_url: finalPhotoUrl || null,
-            notes: formData.notes || null
-          }
-        });
-        toast({
-          title: "Berhasil!",
-          description: "Tanaman baru berhasil ditambahkan"
-        });
+        const { error } = await supabase
+          .from('plants')
+          .insert([payload]);
+
+        if (error) throw error;
+        toast({ title: "Berhasil!", description: "Tanaman baru berhasil ditambahkan" });
       }
 
       await fetchPlants();
@@ -178,7 +179,12 @@ const MyPlants = () => {
     if (!confirm("Apakah Anda yakin ingin menghapus tanaman ini?")) return;
 
     try {
-      await apiFetch(`/plants/${id}`, { method: "DELETE" });
+      const { error } = await supabase
+        .from('plants')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
 
       await fetchPlants();
       toast({
@@ -197,10 +203,12 @@ const MyPlants = () => {
 
   const handleWater = async (id: number) => {
     try {
-      await apiFetch(`/plants/${id}`, {
-        method: "PUT",
-        body: { last_watered: new Date().toISOString().split('T')[0] }
-      });
+      const { error } = await supabase
+        .from('plants')
+        .update({ last_watered: new Date().toISOString().split('T')[0] })
+        .eq('id', id);
+
+      if (error) throw error;
 
       await fetchPlants();
       toast({
@@ -219,10 +227,12 @@ const MyPlants = () => {
 
   const handleFertilize = async (id: number) => {
     try {
-      await apiFetch(`/plants/${id}`, {
-        method: "PUT",
-        body: { last_fertilized: new Date().toISOString().split('T')[0] }
-      });
+      const { error } = await supabase
+        .from('plants')
+        .update({ last_fertilized: new Date().toISOString().split('T')[0] })
+        .eq('id', id);
+
+      if (error) throw error;
 
       await fetchPlants();
       toast({
@@ -363,7 +373,7 @@ const MyPlants = () => {
                     />
                     {formData.photo_url && !selectedFile && (
                       <p className="text-xs text-muted-foreground">
-                        Foto saat ini: <a href={getAssetUrl(formData.photo_url)} target="_blank" rel="noreferrer" className="text-primary hover:underline">Lihat Foto</a>
+                        Foto saat ini: <a href={formData.photo_url ? supabase.storage.from('plants').getPublicUrl(formData.photo_url).data.publicUrl : '#'} target="_blank" rel="noreferrer" className="text-primary hover:underline">Lihat Foto</a>
                       </p>
                     )}
                   </div>
